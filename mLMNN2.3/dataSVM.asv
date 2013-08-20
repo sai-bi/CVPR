@@ -1,0 +1,126 @@
+% This program is used for turning feature.mat into a file
+% in svm-light format.
+% @Bi Sai, 07-31-2013
+
+% Specifications for svm-light format:
+% Each line is a training instance:
+% <line> .=. <target> <feature>:<value> <feature>:<value> ... <feature>:<value> # <info>
+% <target> .=. +1 | -1 | 0 | <float>   (Class of the instance)
+% <feature> .=. <integer> | "qid"      (feature id)
+% <value> .=. <float>                  (feature value)
+% <info> .=. <string>                  (extra info)
+
+% for example, the line
+% -1 1:0.43 3:0.12 9284:0.2 # abcdef
+% specifies a negative example for which feature number 1 has the value 0.43, 
+% feature number 3 has the value 0.12, feature number 9284 has the value 0.2, 
+% and all the other features have value 0
+
+% load('finalFeature.mat');
+load('data/viper_features.mat');
+load('uxLdim2.mat');
+feature = Ldim * ux;
+
+fileID = fopen('trainHSV.txt','w+');
+
+perm = randperm(632);
+
+training1 = feature(:,perm(1:316));
+training2 = feature(:,perm(1:316)+632);
+
+test1 = feature(:,perm(317:632));
+test2 = feature(:,perm(317:632)+632);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% write training1 to trainHSV
+qid = 1;
+for i = 1:270
+    data = sum(training1(:,i).^2);
+	fprintf(fileID,'%f ',data);
+    fprintf(fileID,'qid:%d ',qid);
+    qid = qid+1;
+	for j = 1:size(training1,1)
+		fprintf(fileID, '%d:%f ',j-1,training1(j,i));
+	end
+	fprintf(fileID,'\n');
+end
+% write training2 to trainHSV
+for i = 1:270
+	data = sum( training2(:,i).^2);
+	fprintf(fileID,'%f ',data);
+    fprintf(fileID,'qid:%d ',qid);
+    qid = qid+1;
+	for j = 1:size(training2,1)
+		fprintf(fileID, '%d:%f ',j-1,training2(j,i));
+	end
+	fprintf(fileID,'\n');
+end
+
+fclose(fileID);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fileID = fopen('valHSV.txt','w+');
+for i = 271:316
+	data = sum(training1(:,i).^2);
+	fprintf(fileID,'%f ',data);
+    fprintf(fileID,'qid:%d ',qid);
+    qid = qid+1;
+	for j = 1:size(training1,1)
+		fprintf(fileID, '%d:%f ',j-1,training1(j,i));
+	end
+	fprintf(fileID,'\n');
+end
+
+for i = 271:316
+	data = sum((uxLdim * training2(:,i)).^2);
+	fprintf(fileID,'%f ',data);
+    fprintf(fileID,'qid:%d ',qid);
+    qid = qid+1;
+	for j = 1:size(training2,1)
+		fprintf(fileID, '%d:%f ',j-1,training2(j,i));
+	end
+	fprintf(fileID,'\n');
+end
+fclose(fileID);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fileID = fopen('testHSV.txt','w+');
+for i = 1:316
+	data = sum((uxLdim * test1(:,i)).^2);
+	fprintf(fileID,'%f ',data);
+    fprintf(fileID,'qid:%d ',qid);
+    qid = qid+1;
+	for j = 1:size(test1,1)
+		fprintf(fileID, '%d:%f ',j-1,test1(j,i));
+	end
+	fprintf(fileID,'\n');
+end
+
+for i = 1:316
+	data = sum((uxLdim * test2(:,i)).^2);
+	fprintf(fileID,'%f ',data);
+    fprintf(fileID,'qid:%d ',qid);
+    qid = qid+1;
+	for j = 1:size(test2,1)
+		fprintf(fileID, '%d:%f ',j-1,test2(j,i));
+	end
+	fprintf(fileID,'\n');
+end
+fclose(fileID);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,80 @@
+ load('testData.mat');
+ load('Ldim2.mat');
+ 
+ load('uxLdim.mat');
+ load('uxData.mat');
+% x = 1:316;
+% y = zeros(1,316);
+% 
+% for i = 1 : size(testData1,2)
+% 	temp = bsxfun(@minus, metric * testData2, metric * testData1(:,i));
+% 	temp = sum(temp.^2,1);
+%     %display(temp);
+% 	[minimum, minIndex] = sort(temp);
+%     minIndex = find(minIndex == i);
+%     display(minIndex);
+% 	y = y + [zeros(1,minIndex-1) ones(1,317-minIndex)];
+% end
+% 
+% y = y/316 * 100;
+% plot(x,y,'color','r');
+% hold on;
+% load('expertData.mat');
+% load('metric.mat');
+% testData1 = sample(:,1:316);
+% testData2 = sample(:,317:632);
+%{
+x = 1:316;
+y1 = zeros(1,316);
+for i = 1 : size(testData1,2)
+	temp = bsxfun(@minus, Ldim2 * testData2, Ldim2 * testData1(:,i));
+	temp = sum(temp.^2,1);
+    %display(temp);
+	[minimum, minIndex] = sort(temp);
+    minIndex = find(minIndex == i);
+    display(minIndex);
+	y1 = y1 + [zeros(1,minIndex-1) ones(1,317-minIndex)];
+end
+
+
+y1 = y1/316 * 100;
+% plot(x,y1,'color','r');
+% hold on;
+% 
+% save('yData.mat','y1');
+x = 1:316;
+y2 = zeros(1,316);
+for i = 1 : size(uxTest1,2)
+	temp = bsxfun(@minus, uxLdim * uxTest2, uxLdim * uxTest1(:,i));
+	temp = sum(temp.^2,1);
+    %display(temp);
+	[minimum, minIndex] = sort(temp);
+ 
+    %minIndex = find(minIndex == i);
+    %display(minIndex);
+	%y2 = y2 + [zeros(1,minIndex-1) ones(1,317-minIndex)];
+end
+y2 = y2/316 * 100;
+
+%}
+
+x = 1:316;
+y = zeros(1,316);
+
+for i = 1 : size(uxTest1,2)
+	temp1 = bsxfun(@minus, Ldim2 * testData2, Ldim2 * testData1(:,i));
+    temp2 = bsxfun(@minus, uxLdim * uxTest2, uxLdim * uxTest1(:,i));
+    [min1,index1] = sort(temp1);
+    [min2,index2] = sort(temp2);
+    
+end
+
+
+
+
+
+
+
+
+
+

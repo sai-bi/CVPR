@@ -1,0 +1,21 @@
+load('negData.mat');
+load('posData.mat');
+
+split = zeros(1,60);
+percent = zeros(1,60);
+myrank = zeros(1,60);
+for i = 1:60
+	pos = posPair(i,:);
+	neg = negPair(i,:);
+
+	pos = sort(pos);
+	neg = sort(neg);
+
+	%for j = 316:-1:1
+		index = find(neg < pos(1,316));
+		percent(1,i) = size(index,2)/95440.0;
+    %end
+    x = linspace(1,
+    
+end
+

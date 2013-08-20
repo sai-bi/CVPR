@@ -1,0 +1,67 @@
+%  load('testData.mat');
+%  load('Ldim2.mat');
+ 
+%load('uxLdim2.mat');
+%load('uxData.mat');
+load('multiExpert.mat');
+
+	x = 1:316;
+    y2 = zeros(1,316);
+
+
+for i = 1 : size(uxTest1,2)
+
+	temp = zeros(1,316);
+    for j = 1:size(selectSet,2)
+        if j == 2
+            continue;
+        end
+        
+        
+    	uxLdim = selectSet{i}.metric;
+    	uxTest1 = selectSet{i}.test1;
+    	uxTest2 = selectSet{i}.test2;
+    	temp = bsxfun(@minus, uxLdim * uxTest2, uxLdim * uxTest1(:,i));
+		temp = sum(temp.^2,1);
+	    
+	    temp1 = bsxfun(@minus, uxLdim * uxTest1, uxLdim * uxTest2(:,i));
+		temp1 = sum(temp1.^2,1);
+
+		temp = temp + temp1;
+    end
+    [minimum, minIndex] = sort(temp);
+
+    minIndex = find(minIndex == i);
+    %display(minIndex);
+	y2 = y2 + [zeros(1,minIndex-1) ones(1,317-minIndex)];
+end
+
+y2 = y2/316 * 100;
+
+Z = trapz(x,y2);
+fprintf('%f\n',Z/(315*100));
+plot(x,y2,'color','g');
+hold on;
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

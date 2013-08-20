@@ -1,0 +1,7 @@
+%This program combines LBP and HSVYUV together as the features.
+load('finalFeature.mat');
+load('data/viper_features.mat');
+L = pca(ux)';
+mixFeature = [feature;ux(1:100,:)];
+
+save('mixFeature.mat','mixFeature');

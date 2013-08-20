@@ -1,0 +1,169 @@
+setpaths
+load('expertLMNN.mat');
+load('negPair.mat');
+load('expertSample.mat');
+for i = 1:1
+	%data points formed by positive pairs
+    
+    frpintf(''
+	svmTraining1 = [training1(:,1:size(training1,2)/2);
+	                training1(:,size(training1,2)/2 + 1 : end)];
+	svmTraining2 = [training2(:,1:size(training2,2)/2);
+	                training2(:,size(training2,2)/2 + 1 : end)];
+	svmTraining3 = [training3(:,1:size(training3,2)/2);
+	                training3(:,size(training3,2)/2 + 1 : end)];
+    %data points formed by negative pairs
+    svmTraining4 = [negGroup1 negGroup2 negGroup3];
+
+	svmTraining = [svmTraining1 svmTraining2 svmTraining3 svmTraining4]';
+	svmLabel = [ones(size(training1,2)/2,1);
+	            ones(size(training2,2)/2,1) * 2;
+	            ones(size(training3,2)/2,1) * 3;
+	            ones(size(negGroup1,2),1);
+	            ones(size(negGroup2,2),1) * 2;
+	            ones(size(negGroup3,2),1) * 3];
+
+	%parameter selection for positive pair
+    fprintf('Parameter selection for SVM++++++++++++++++++');
+    bestcv = 0;
+    cv = {};
+	for log2c = -1:3,
+	  for log2g = -4:1,
+	    cmd = ['-v 5 -c ', num2str(2^log2c), ' -g ', num2str(2^log2g)];
+	    cv = svmtrain(svmLabel, svmTraining, cmd);
+	    if (cv >= bestcv)
+	      bestcv = cv; bestc = 2^log2c; bestg = 2^log2g;
+	    end
+	    fprintf('%g %g %g (best c=%g, g=%g, rate=%g)\n', log2c, log2g, cv, bestc, bestg, bestcv);
+	  end
+	end
+
+    %do predication to the positive pairs and negative pairs
+    predictData1 = [sample1;sample2];
+    predictData2 = [sample(:,negativePair(:,1)); sample(:,negativePair(:,2))];
+    predictData = [predictData1 predictData2]';
+
+    fprintf('SVM Predict:+++++++++++++++++++++++');
+    [label, Accu, Prob] = svmpredict(svmLabel,predictData,cv, '-b',1);
+  
+    posLabel = label(1:316);
+    %find group 1,only the first 316 points with label 1 belong to training1
+    index1 = find(posLabel == 1);
+    training1 = [sample1(:,index1) sample2(:,index1)];
+    id1 = [index1  index1 + 316];
+
+    %find group 2, only the first 316 points with label 2 belong to training2
+    index2 = find(posLabel == 2);
+    training2 = [sample1(:,index2) sample2(:,index2)];
+    id2 = [index2 index2 + 316];
+
+    %find group 3, only the first 316 points with label 3 belong to training3
+    index3 = find(posLabel == 3);
+    training3 = [sample1(:,index3) sample2(:,index3)];
+    id3 = [index3 index3 + 316];
+
+    %divide negative pairs into 3 groups
+    negLabel = label(317:end);
+    %find group1
+    index1 = find(negLabel == 1);
+    for i = 1 : size(index1,1)
+		point1 = sample(:,negativePair(index1(i),1));
+	    point2 = sample(:,negativePair(index1(i),2));
+	    pairDist(negativePair(index1(i),1), negativePair(index1(i),2)) = sum((metric1*(point1 - point2)).^2);
+	end
+
+    %find group2
+	index2 = find(negLabel == 2);
+    for i = 1 : size(index2,1)
+		point1 = sample(:,negativePair(index2(i),1));
+	    point2 = sample(:,negativePair(index2(i),2));
+	    pairDist(negativePair(index2(i),1), negativePair(index2(i),2)) = sum((metric2*(point1 - point2)).^2);
+	end
+
+	%find group3
+	index3 = find(negLabel == 3);
+    for i = 1 : size(index3,1)
+		point1 = sample(:,negativePair(index3(i),1));
+	    point2 = sample(:,negativePair(index3(i),2));
+	    pairDist(negativePair(index3(i),1), negativePair(index3(i),2)) = sum((metric3*(point1 - point2)).^2);
+	end
+
+
+
+	%===============================================================================
+	%===============================================================================
+	%using LMNN again: code copied from above
+
+	metric1 = myLMNN(metric1,pairDist,id1,training1,label1,500,sample); 
+	metric2 = myLMNN(metric2,pairDist,id2,training2,label2,500,sample);
+	metric3 = myLMNN(metric3,pairDist,id3,training3,label3,500,sample);
+
+	%---------------------------------------------------------------------------------------
+	%---------------------------------------------------------------------------------------
+	%divide the positve pair into three parts again
+	dist1 = sum((metric1 * (sample1 - sample2)).^2);
+	dist2 = sum((metric2 * (sample1 - sample2)).^2);
+	dist3 = sum((metric3 * (sample1 - sample2)).^2);
+
+	dis = [dist1 dist2 dist3];
+	%find the minimum of each row
+	%index records the index of minimum on each row
+	[minimum, minIndex] = min(dis,[],2);  
+
+	%find new group1
+	index1 = find(minIndex == 1);
+	training1 = [sample1(:,index1) sample2(:,index1)];
+	id1 = [index1 index1 + 316];
+	%find new group2
+	
+	index2 = find(minIndex == 2);
+	training2 = [sample1(:,index2) sample2(:, index2)];
+	id2 = [index2 index2 + 316];
+
+	%find new group3
+	index3 = find(minIndex == 3);
+	training3 = [sample1(:,index3) sample2(:,index3)];
+	id3 = [index3 index3 + 316];
+    %---------------------------------------------------------------------------------------
+	%---------------------------------------------------------------------------------------
+	%divide negative pairs into three parts again
+	negPair1 = sample(:,negativePair(:,1));
+	negPair2 = sample(:,negativePair(:,2));
+	dist1 = sum((metric1 *(negPair1 - negPair2)).^2);
+	dist2 = sum((metric2 *(negPair1 - negPair2)).^2);
+	dist3 = sum((metric3 *(negPair1 - negPair2)).^2);
+
+	dis = [dist1 dist2 dist3];
+	%find maximum of each row
+	[maximum, maxIndex] = max(dis,[],2);
+
+	%find negative pairs that belong to group1
+	index1 = find(maxIndex == 1);
+	for i = 1 : size(index1,1)
+		point1 = sample(:,negativePair(index1(i),1));
+	    point2 = sample(:,negativePair(index1(i),2));
+	    pairDist(negativePair(index1(i),1), negativePair(index1(i),2)) = sum((metric1*(point1 - point2)).^2);
+	end
+	negGroup1 = [sample(:,negativePair(index1,1)); sample(:,negativePair(index1,2))];
+	
+	%find negative pairs that belong to group2
+	index2 = find(maxIndex == 2);
+	for i = 1 : size(index2,1)
+		point1 = sample(:,negativePair(index2(i),1));
+	    point2 = sample(:,negativePair(index2(i),2));
+	    pairDist(negativePair(index2(i),1), negativePair(index2(i),2)) = sum((metric2*(point1 - point2)).^2);
+	end
+    negGroup2 = [sample(:,negativePair(index2,1)); sample(:,negativePair(index2,2))];
+	
+	%find negative pairs that belong to group3
+	index3 = find(maxIndex == 3);
+	for i = 1 : size(index3,1)
+		point1 = sample(:,negativePair(index3(i),1));
+	    point2 = sample(:,negativePair(index3(i),2));
+	    pairDist(negativePair(index3(i),1), negativePair(index3(i),2)) = sum((metric3*(point1 - point2)).^2);
+	end
+	negGroup3 = [sample(:,negativePair(index3,1)); sample(:,negativePair(index3,2))];
+
+	%===============================================================================
+	%===============================================================================
+end

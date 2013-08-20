@@ -1,0 +1,24 @@
+% This program is used to process training data for weight learning.
+load('randSelect.mat');
+load('data/viper_features.mat');
+load('finalFeature_5.mat');
+%load('multiExpert.mat')
+newFeature = [ux;feature];
+
+training = {};
+a = [2 14 16 17 22 24 26 27 28];
+selectSet = selectSet(
+for i = 1:size(selectSet,2)
+	myselect = selectSet{i}.select;
+	selectFeature = [];
+	for j = 1:24
+		st = myselect(j);
+		selectFeature = [selectFeature;newFeature(st:(st+50),:)]
+	end
+	sample.training1 = selectFeature(:,perm(317,417));
+	sample.training2 = selectFeature(:,perm(317,417)+632);
+	training{i} = sample;
+	clear sample;
+end
+
+save('weightLearn.mat','training');

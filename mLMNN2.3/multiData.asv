@@ -1,0 +1,57 @@
+function [select] = multiData(ux,feature)
+
+%load('finalFeature_5.mat');
+%load('data/viper_features.mat');
+
+newFeature = [ux; feature];
+%631 + 640
+select = randsample(1221,24);
+
+%selectFeature = zeros(600,1264);
+selectFeature = [];
+for i = 1:24
+	st = select(i);
+	selectFeature = [selectFeature;newFeature(st:(st+50),:)];
+end
+
+perm = randperm(632);
+training1 = selectFeature(:,perm(1:316));
+training2 = selectFeature(:,perm(1:316)+632);
+test1 = selectFeature(:,perm(317:632));
+test2 = selectFeature(:,perm(317:632)+632);
+
+save('randSelect.mat','training1','training2','test1','test2');
+
+selectSet = {};
+for i = 1:10
+    select = randsample(1221,24);
+
+    %selectFeature = zeros(600,1264);
+    selectFeature = [];
+    for i = 1:24
+        st = select(i);
+        selectFeature = [selectFeature;newFeature(st:(st+50),:)];
+    end
+
+    perm = randperm(632);
+    training1 = selectFeature(:,perm(1:316));
+    training2 = selectFeature(:,perm(1:316)+632);
+    test1 = selectFeature(:,perm(317:632));
+    test2 = selectFeature(:,perm(317:632)+632);
+end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -1,0 +1,16 @@
+8
+
+dir
+0
+https://svn.cis.upenn.edu/svnroot/lksmlg/common/algorithms/mLMNN
+https://svn.cis.upenn.edu/svnroot/lksmlg
+add
+
+
+
+
+
+
+
+svn:special svn:externals svn:needs-lock
+
